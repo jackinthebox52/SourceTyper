@@ -33,31 +33,45 @@ def manageOBS(mode):
     global obs
     if(mode==1):
         obs = Popen(['obs', '--startrecording', '--minimize-to-tray', '--scene', 'SourceTyper'])
-       # obs = Popen(f'code {temp_dir} --user-data-dir {USER_DATA_DIR}', shell=True)
     if(mode==2):
-        try:
-            obs.kill()#TODO make this more graceful
-        except:
-            print("Exception: OBS is already closed.")
+        try:    obs.kill()#TODO make this more graceful
+        except:     print("Exception: OBS is already closed.")
 
 def loadAudio():
-    global word_len_keys #These sounds can be used for whole words
+    audio_dir = './assets/audio/'
+    global word_keys #These sounds can be used for whole words
     global single_keys
-    fast_20_1 = AudioSegment.from_wav(r"./assets/typing_fast_20s.wav")
-    single_1 = AudioSegment.from_wav(r"./assets/typing_single_1.wav")
-    word_len_keys = [fast_20_1]
-    single_keys = [single_1]
+    word_keys = {}
+    single_keys = {}
+    for f in os.listdir(f'{audio_dir}typing_word'):
+        if '.wav' in f:
+            name = f.split('.')[0]
+            auds = AudioSegment.from_wav(f'{audio_dir}typing_word/{f}')
+            word_keys[name] = auds
+            print(f'Loaded audio file: {audio_dir}typing_word/{f}')
+    for f in os.listdir(f'{audio_dir}typing_single'):
+        if '.wav' in f:
+            name = f.split('.')[0]
+            auds = AudioSegment.from_wav(f'{audio_dir}typing_single/{f}')
+            single_keys[name] = auds
+            print(f'Loaded audio file: {audio_dir}typing_single/{f}')
+    #fast_20_1 = AudioSegment.from_wav(r"./assets/typing_fast_20s.wav")
+    #single_1 = AudioSegment.from_wav(r"./assets/typing_single_1.wav")
+    #word_keys = [fast_20_1]
+    #single_keys = [single_1]
 
 def randomAudio(mode):
     if(mode == 'single'):
-        return single_keys[random.randint(0,len(single_keys)-1)]
+        index, sound = random.choice(list(single_keys.items()))
+        print(f'Playing single stroke audio: {index}.wav')
+        return sound
     if(mode == 'word'):
-        return word_len_keys[random.randint(0,len(word_len_keys)-1)]
+        index, sound = random.choice(list(word_keys.items()))
+        #print(f'Playing word audio: {index}.wav')
+        return sound
     return None
 
 async def start(proj_name, project_dir, pause, typo, s):
-    global W, H
-    W, H = pyautogui.size()
     loadAudio()
     execCommand(f'cd {proj_name}')
     for root, dirs, files in os.walk(project_dir):
@@ -97,8 +111,7 @@ async def typeLines(lines, pause, typo, s):
             chance_change_speed = random.randint(1,3)#Needs work
             if(chance_change_speed == 2):
                 speed = random.uniform(speed * .85, speed * 1.15)
-                print(f'Speed varied to:{speed}')
-            print(f'Speed:{speed}')
+                #print(f'Speed varied to:{speed} char')
             try: 
                 if chance_typo < typo:                                                  #Execute typo procedure
                     typo_w = randomlyChangeNChar(w, int(len(w)/6))#TODO 6 is arbitrary
@@ -109,15 +122,18 @@ async def typeLines(lines, pause, typo, s):
                     for i in typo_w:
                         playback = _play_with_simpleaudio(randomAudio('single'))
                         pyautogui.press('backspace')
+                        playback.stop()
                         #TODO add single key stroke sound here
-            except Exception as e: print(f'Likely harmless exception in sourcetyper.typeLines() typo procedure: {e}') #TODO catch invalid operator exception, this is the harmless one
-            if(w == '\t'):                                                  #Handle tabs, they need different sound and no space after.
+            except TypeError as e: pass #TODO catch other errors
+            if(w == ' '):                                                  #Handle tabs, they need different sound and no space after.
+                print('TAB!')
                 playback = _play_with_simpleaudio(randomAudio('single'))
                 pyautogui.press('tab')
-            playback = _play_with_simpleaudio(randomAudio('word'))
-            pyautogui.write(w, interval=speed)
-            pyautogui.press('space')
-            playback.stop()
+            else:
+                playback = _play_with_simpleaudio(randomAudio('word'))
+                pyautogui.write(w, interval=speed)
+                pyautogui.press('space')
+                playback.stop()
             try:
                 if chance_pause_word < pause:
                     time.sleep(random.randint(3, 9)/10)

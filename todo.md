@@ -20,6 +20,8 @@ annotate all functions
 
 change all print functions to custom logging 
 
+FIND OUT WHY TABS ARE NOT BEING TYPED WITH SINGLE KEYSTROKE SOUND
+
 Done:
 typos
 pausing
