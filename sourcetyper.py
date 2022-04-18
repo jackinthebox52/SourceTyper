@@ -55,7 +55,7 @@ def randomAudio(mode):
         return word_len_keys[random.randint(0,len(word_len_keys)-1)]
     return None
 
-async def start(proj_name, project_dir, pause, typo):
+async def start(proj_name, project_dir, pause, typo, s):
     global W, H
     W, H = pyautogui.size()
     loadAudio()
@@ -72,45 +72,55 @@ async def start(proj_name, project_dir, pause, typo):
             l = open(os.path.join(root, i), 'r')
             try:
                 lines = l.readlines()
-                await typeLines(lines, pause, typo)
+                await typeLines(lines, pause, typo, s)
             except UnicodeDecodeError:
                 print(f"Skipping file: {i} . Presumably a non utf-8 file.") #TODO there is probably a better way to deal with these files
             time.sleep(random.randint(3, 10)/10)
             nanoSaveMacro()
     return
 
-async def typeLines(lines, pause, typo):
+async def typeLines(lines, pause, typo, s):
+    global speed
+    global base_speed
+    if(s == None):
+        speed = 0.0625 #Default speed of 16 char/s
+    else:
+        base_speed = 1 / s                                                                   #Convert char/sec to decimal wait interval
+        speed = base_speed  
     for line in lines:
         line = line.replace('\n', '')
         words = line.split(' ')
-        for w in words: #Write word by word
-            chance_pause_line = random.randint(1,20)
-            chance_typo = random.randint(1,40)
-            chance_pause_word = random.randint(1,60)
+        for w in words: #Write to terminal word by word #Unindent this block
+            chance_pause_line = random.randint(1,20)#Needs work
+            chance_typo = random.randint(1,60)
+            chance_pause_word = random.randint(1,60)#Needs work
+            chance_change_speed = random.randint(1,3)#Needs work
+            if(chance_change_speed == 2):
+                speed = random.uniform(speed * .85, speed * 1.15)
+                print(f'Speed varied to:{speed}')
+            print(f'Speed:{speed}')
             try: 
-                if chance_typo < typo: #Execute typo procedure
-                    typo_w = randomlyChangeNChar(w, int(len(w)/5))#TODO 5 is arbitrary
+                if chance_typo < typo:                                                  #Execute typo procedure
+                    typo_w = randomlyChangeNChar(w, int(len(w)/6))#TODO 6 is arbitrary
                     playback = _play_with_simpleaudio(randomAudio('word'))
-                    pyautogui.write(typo_w, interval=.05)
+                    pyautogui.write(typo_w, interval=speed)
                     playback.stop()
-                    time.sleep(random.randint(5, 15)/10)
+                    time.sleep(random.randint(0, 5)/10)
                     for i in typo_w:
                         playback = _play_with_simpleaudio(randomAudio('single'))
                         pyautogui.press('backspace')
-                        playback.stop()
                         #TODO add single key stroke sound here
-            except Exception as e: print(e)
-            if(w == '\t'):#Handle tabs, they need different sound and no space after.
+            except Exception as e: print(f'Likely harmless exception in sourcetyper.typeLines() typo procedure: {e}') #TODO catch invalid operator exception, this is the harmless one
+            if(w == '\t'):                                                  #Handle tabs, they need different sound and no space after.
                 playback = _play_with_simpleaudio(randomAudio('single'))
                 pyautogui.press('tab')
-                playback.stop()
             playback = _play_with_simpleaudio(randomAudio('word'))
-            pyautogui.write(w, interval=.0625)
+            pyautogui.write(w, interval=speed)
             pyautogui.press('space')
             playback.stop()
             try:
                 if chance_pause_word < pause:
-                    time.sleep(random.randint(3, 15)/10)
+                    time.sleep(random.randint(3, 9)/10)
             except: pass
         pyautogui.press('enter')
         try:

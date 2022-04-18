@@ -4,9 +4,13 @@ swap obs for ffmpeg or similar?
 
 implement .stignore, with a template containg *.bin and all file extensions to exclude by defualt
 
+implement output option, and possibly video settings
+
+look into prgramatically configuring obs scenes and sources
+
 implement typing speed and speed variablility
 
-implement random backspacing as an option
+get alot more key sounds
 
 look into why html files might not autotype properly
 
@@ -17,6 +21,7 @@ annotate all functions
 change all print functions to custom logging 
 
 Done:
+typos
 pausing
 "--arg-name value" arg format
 

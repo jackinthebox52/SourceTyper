@@ -12,9 +12,11 @@ def parseArgs():
     arg_list.add_argument("-d", "--dir", required=True,
         help="Directory of the target project")
     arg_list.add_argument("-p", "--pause", required=False,
-        help="Enable random pasues during typing. Specify frequency from 1-10.")
+        help="Enable random pasues during typing. Specify frequency from 1-10")
     arg_list.add_argument("-t", "--typo", required=False,
-        help="Enable random typos. Specify frequency from 1-10.")
+        help="Enable random typos. Specify frequency from 1-10")
+    arg_list.add_argument("-s", "--speed", required=False,
+        help="Specify average typing speed in char/sec. Default = 16char/sec = 480word/min")
     args = vars(arg_list.parse_args())
     dir = args['dir']
     pause = None
@@ -23,10 +25,14 @@ def parseArgs():
     typo = None
     try: typo = int(args['typo']) 
     except: print('Default typo off') 
-    return dir, pause, typo
+    speed = None
+    try: speed = int(args['speed']) 
+    except: print('Default speed 16char/sec') 
+    
+    return dir, pause, typo, speed
 
 async def main():
-    dir, pause, typo = parseArgs()
+    dir, pause, typo, speed = parseArgs()
     lof = []
     if(not os.path.isdir(dir)):
         print(f'Error: {dir} is not a directory')
@@ -40,7 +46,7 @@ async def main():
     sourcetyper.manageOBS(1) #Start OBS
     time.sleep(10)#TODO improve idk
     typer_task = asyncio.create_task( #Creates project files/folders and types code
-        sourcetyper.start(project_name, dir, pause, typo))
+        sourcetyper.start(project_name, dir, pause, typo, speed))
     await typer_task
     sourcetyper.closeGracefully()
 
