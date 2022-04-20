@@ -1,0 +1,2 @@
+PyAutoGUI==0.9.53
+pydub==0.25.1

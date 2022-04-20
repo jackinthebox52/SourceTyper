@@ -1,10 +1,8 @@
 #!/usr/bin/env python
 import os, time
-from subprocess import Popen
 import argparse
 import asyncio
 
-from matplotlib.pyplot import pause
 import typer
 
 def closeGracefully():
