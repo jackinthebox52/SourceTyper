@@ -5,7 +5,12 @@ import argparse
 import asyncio
 
 from matplotlib.pyplot import pause
-import sourcetyper
+import typer
+
+def closeGracefully():
+    typer.manageOBS(2)#Stop OBS
+    print('Closing')
+    exit()
 
 def parseArgs():
     arg_list = argparse.ArgumentParser()
@@ -28,7 +33,7 @@ def parseArgs():
     speed = None
     try: speed = int(args['speed']) 
     except: print('Default speed 16char/sec') 
-    
+
     return dir, pause, typo, speed
 
 async def main():
@@ -41,15 +46,14 @@ async def main():
             lof.append(os.path.join(root,file))
     if(lof == []):
         print(f'Error: Target directory: {dir} is empty')
-    project_name = sourcetyper.tmpDir(dir)
+    project_name = typer.tmpDir(dir)
 
-    sourcetyper.manageOBS(1) #Start OBS
+    typer.manageOBS(1) #Start OBS
     time.sleep(10)#TODO improve idk
     typer_task = asyncio.create_task( #Creates project files/folders and types code
-        sourcetyper.start(project_name, dir, pause, typo, speed))
+        typer.start(project_name, dir, pause, typo, speed))
     await typer_task
-    sourcetyper.closeGracefully()
+    closeGracefully()
 
-    
 if __name__ == '__main__':
     asyncio.run(main())
